@@ -1,10 +1,10 @@
+mod auth;
 mod commands;
 mod graphql;
 
 use anyhow::{anyhow, bail, Context, Result};
 use clap::App;
-use commands::{auth, dashboard, tldr};
-use confy;
+use commands::{auth as authenticate, dashboard, tldr};
 use serde_derive::{Deserialize, Serialize};
 use std::fs;
 
@@ -31,7 +31,7 @@ fn main() -> Result<()> {
     let get_config_path = || -> Result<std::path::PathBuf> {
         let config = matches
             .value_of("config")
-            .ok_or(anyhow!("config is not a valid string!"))?;
+            .ok_or_else(|| anyhow!("config is not a valid string!"))?;
         let path = fs::canonicalize(config)?;
         Ok(path)
     };
@@ -42,7 +42,7 @@ fn main() -> Result<()> {
         } else {
             confy::load("cuddle")
         }
-        .with_context(|| format!("Failed to load config"))
+        .with_context(|| "Failed to load config")
     };
 
     let mut set_config = |cfg: Config| -> Result<()> {
@@ -51,7 +51,7 @@ fn main() -> Result<()> {
         } else {
             confy::store("cuddle", cfg)
         }
-        .with_context(|| format!("Failed to set config"))
+        .with_context(|| "Failed to set config")
     };
 
     let cfg: Config = get_config().context("error while loading configuration")?;
@@ -61,7 +61,7 @@ fn main() -> Result<()> {
     };
 
     if let Some(ref _matches) = matches.subcommand_matches("auth") {
-        return auth::run(app);
+        return authenticate::run(app);
     }
 
     if cfg.cid.is_empty() {

@@ -1,7 +1,7 @@
 # CUDDLE - The Code University Dashboard
 
-## Installation
+Work in progress
 
-- https://github.com/fdehau/tui-rs
-  - https://github.com/crossterm-rs/crossterm
-- https://crates.io/crates/clap
+## Development
+
+To update the graphql schema, install nodejs and run `npx get-graphql-schema https://api.app.code.berlin/graphql > schema.graphql`

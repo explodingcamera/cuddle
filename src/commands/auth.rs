@@ -14,6 +14,7 @@ pub fn run(app: CuddleApp) -> Result<()> {
 
     println!("Due to restrictions in the code api, please paste you refresh token (cid) below.\n");
     println!("Important note: \nFor now, cid's are stored in the config file, so be sure to exclude `~/.config/cuddle` if your using some kind of dotfiles manager.");
+    println!("Hopefully, this can someday be replaced with a better authentification mechanism.");
     println!("To find your cid:");
     println!("1. Go to https://app.code.berlin and sign in");
     println!("2. Go to https://api.app.code.berlin");
@@ -26,7 +27,7 @@ pub fn run(app: CuddleApp) -> Result<()> {
     cfg.cid = Input::with_theme(&theme)
         .with_prompt("Please paste your CID")
         .interact()
-        .with_context(|| format!("Failed to get cid"))?;
+        .with_context(|| "Failed to get cid")?;
 
     (app.set_config)(cfg)?;
 

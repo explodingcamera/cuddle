@@ -1,0 +1,10 @@
+schema: "./src/graphql/schema.graphql"
+documents: "./src/graphql/queries.graphql"
+extensions: {
+  endpoints: {
+    default: {
+      url: "https://api.app.code.berlin",
+      headers: { Authorization: `Bearer ${process.env.API_TOKEN}` },
+    },
+  },
+}

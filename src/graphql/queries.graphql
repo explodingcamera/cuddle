@@ -1,0 +1,39 @@
+query InitialQuery {
+  me {
+    firstName
+    lastName
+    name
+    email
+    role
+    projectMemberships {
+      role
+      startDate
+      endTime
+      isOwner
+      project {
+        title
+        description
+        id
+        isArchived
+        updates {
+          title
+          content
+        }
+        activeMemberships {
+          role
+          isOwner
+          id
+        }
+      }
+    }
+  }
+  myNotifications {
+    title
+    label
+    read
+    urgency
+    id
+    createdAt
+    updatedAt
+  }
+}
