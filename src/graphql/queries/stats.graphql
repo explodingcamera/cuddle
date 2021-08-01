@@ -1,0 +1,16 @@
+query Stats {
+  ectsStatistics {
+    semester
+    count
+    percent
+  }
+  currentSemester {
+    importantSemesterDates {
+      id
+      title
+      subtitle
+      date
+      visibility
+    }
+  }
+}

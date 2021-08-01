@@ -4,7 +4,8 @@ mod graphql;
 
 use anyhow::{anyhow, bail, Context, Result};
 use clap::App;
-use commands::{auth as authenticate, dashboard, tldr};
+use commands::dashboard::Dashboard;
+use commands::{auth as authenticate, tldr};
 use serde_derive::{Deserialize, Serialize};
 use std::fs;
 
@@ -72,5 +73,6 @@ fn main() -> Result<()> {
         return tldr::run(app);
     }
 
-    dashboard::run(app)
+    let dashboard = Dashboard::new(app);
+    Ok(())
 }

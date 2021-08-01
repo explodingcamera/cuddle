@@ -36,4 +36,20 @@ query InitialQuery {
     createdAt
     updatedAt
   }
+  myUpcomingAssessments {
+    proposedDate
+    submittedOn
+    requiresScheduling
+    published
+    assessmentStyle
+    assessmentStatus
+    assessor {
+      firstName
+      lastName
+    }
+    assistant {
+      firstName
+      lastName
+    }
+  }
 }

@@ -1,7 +1,7 @@
-use crate::CuddleApp;
-use anyhow::Result;
+mod dashboard;
+mod ui;
+mod util;
 
-pub fn run(app: CuddleApp) -> Result<()> {
-    let _cfg = (app.get_config)()?;
-    Ok(())
-}
+pub use dashboard::*;
+pub use ui::draw;
+pub use util::*;

@@ -1,6 +1,15 @@
-# CUDDLE - The Code University Dashboard
+```
+  _____     ____                    _     _ _
+ /      \  |  o |     ___ _   _  __| | __| | | ___
+|        |/ ___\|    / __| | | |/ _` |/ _` | |/ _ \
+|_________/         | (__| |_| | (_| | (_| | |  __/
+|_|_| |_|_|          \___|\__,_|\__,_|\__,_|_|\___|
 
-Work in progress
+  The (unofficial) Code University Dashboard CLI
+
+```
+
+> Work in progress
 
 ## Development
 
