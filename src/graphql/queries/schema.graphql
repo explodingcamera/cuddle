@@ -46,6 +46,7 @@ type Assessment {
 
   """Indicates whether or not this assessment is an early registration"""
   canEarlyAssess: Boolean
+  permissions: AssessmentPermissions!
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -130,6 +131,12 @@ input AssessmentInput {
   startTime: DateTime
   endTime: DateTime
   submittedOn: DateTime
+}
+
+type AssessmentPermissions {
+  canAssess: Boolean
+  isBeingAssessed: Boolean
+  canManage: Boolean
 }
 
 input AssessmentProposalInput {
@@ -237,12 +244,29 @@ input AwsKeyList {
   key: String
 }
 
+input BookOfficeHourEventInput {
+  eventId: ID!
+  description: String
+}
+
 type BugReport {
   id: ID
   body: String
   title: String
   state: String
   createdAt: String
+}
+
+input CarryOverProjectInput {
+  title: String!
+  coverUrl: String
+  description: String!
+  outline: String!
+  isLookingForTeammates: Boolean!
+  tags: [String!]!
+  projectId: ID!
+  teamMembers: [ProjectTeamMemberInput!]!
+  sponsor: ID
 }
 
 input CreateProjectInput {
@@ -403,6 +427,7 @@ type EventGroup {
 
   """Whether or not the current user is an organizer for this event group"""
   isHost: Boolean!
+  permissions: EventGroupPermissions!
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -460,6 +485,11 @@ type EventGroupParticipations {
   updatedAt: DateTime!
 }
 
+type EventGroupPermissions {
+  canEdit: Boolean
+  canManage: Boolean
+}
+
 enum EventGroupType {
   ACADEMIC
   NON_ACADEMIC
@@ -505,23 +535,24 @@ input FormComponentInput {
   index: Int
 }
 
+"""Google events which are used for OfficeHourEvents as well"""
 type GoogleEvent {
   eventId: ID!
-  eventTitle: String
+  title: String
   description: String
   organizer: String
   location: String
   participate: String
-  startTime: String!
-  endTime: String!
+  startTime: DateTime!
+  endTime: DateTime!
   officeHourGroupId: String
   isOfficeHour: Boolean!
   isOfficeHourBooked: Boolean
 }
 
 input GoogleWeeklyEventsInput {
-  startDate: DateTime
-  endDate: DateTime
+  startDate: DateTime!
+  endDate: DateTime!
 }
 
 enum HandinComponent {
@@ -782,11 +813,7 @@ type ModuleHandin {
   user: User
   published: Boolean!
   userHandins: [UserHandin!]!
-
-  """
-  Permissions associated with this hand-in e.g whether or not the current user can edit this hand-in
-  """
-  grants: [String!]
+  permissions: ModuleHandinPermissions!
 
   """Deadline for this hand-in"""
   latestHandinDeadline: DateTime
@@ -818,6 +845,10 @@ input ModuleHandinInput {
   deadline: DateTime
   mandatory: Boolean!
   formComponents: [FormComponentInput!]!
+}
+
+type ModuleHandinPermissions {
+  canManage: Boolean
 }
 
 input ModuleInput {
@@ -876,9 +907,6 @@ type Mutation {
   """Updates an assessments details"""
   updateAssessment(assessmentId: ID!, data: AssessmentInput!): Assessment
 
-  """Grade and review an assessment"""
-  updateAssessmentDetails(assessmentId: ID!, data: AssessmentDetailsEditInput!): Assessment
-
   """
   Forwards an absent assessment to the examination office to determine whether the student in question was excused or not
   """
@@ -894,9 +922,6 @@ type Mutation {
   """
   batchResolveAbsence(assessments: [ID!]!, assessmentStatus: AssessmentStatus!): [Assessment]
 
-  """Publish the result of an assessments"""
-  publishAssessment(assessmentId: ID!): Assessment
-
   """Publish the result of multiple assessments"""
   batchPublishAssessments(assessments: [ID!]!): [Assessment]
 
@@ -905,11 +930,6 @@ type Mutation {
 
   """Accepts an alternative assessment proposal"""
   acceptAssessmentProposal(assessmentId: ID!, data: AssessmentProposalInput!): Assessment
-
-  """
-  Propose converting an already existing assessment into an early assessment
-  """
-  proposeEarlyAssessment(assessmentId: ID!, proposedDate: DateTime!): Assessment
 
   """
   Declines an ealry assessment request, converting the assessment back to a normal one
@@ -951,11 +971,16 @@ type Mutation {
   updateModule(moduleId: ID!, data: ModuleInput!): Module
   addComment(content: String!, updateId: ID!): UpdateComment
   createProject(data: CreateProjectInput!): Project!
+  followProject(id: ID!, action: String!): Project!
   updateProject(data: UpdateProjectInput!, id: ID!): Project!
   archiveProject(id: ID!): Boolean!
   unarchiveProject(id: ID!): Boolean!
   setProjectSponsor(id: ID!, projectSponsorId: ID): Boolean!
+  carryOverProject(data: CarryOverProjectInput!): Project!
   makeProjectOfficial(id: ID!): Boolean!
+  requestSignoff(id: ID!): Boolean!
+  requestCheckout(id: ID!): Boolean!
+  checkoutProject(id: ID!): Boolean!
   inviteUsersToProject(users: [ProjectInviteUserInput!]!, projectId: ID!): Boolean
   acceptProjectInvite(projectId: ID!): Boolean
   declineProjectInvite(projectId: ID!): Boolean
@@ -1074,17 +1099,20 @@ type Mutation {
   updateModuleHandin(moduleHandinId: ID!, data: ModuleHandinInput!, isPublished: Boolean = false): ModuleHandin!
   duplicateModuleHandin(moduleHandinId: ID!): ModuleHandin
 
-  """student mutation to book office hour"""
-  bookOfficeHours(eventId: String!, profEmail: String!): Boolean!
-
   """prof mutation to create office hour"""
-  createOfficeHour(data: OfficeHourInput!): Boolean!
+  createOfficeHour(data: OfficeHourInput!): OfficeHourEvent!
 
   """prof mutation to edit office hour"""
-  updateOfficeHour(googleEventId: ID!, data: OfficeHourInput!): Boolean!
+  updateOfficeHour(googleEventId: ID!, data: OfficeHourInput!): OfficeHourEvent!
 
   """prof mutation to delete office hour"""
   deleteOfficeHour(googleEventId: ID!): Boolean!
+
+  """student mutation to book office hour"""
+  bookOfficeHour(data: BookOfficeHourEventInput!): Boolean!
+
+  """unbooking office hour from student side"""
+  unbookOfficeHour(eventId: ID!): Boolean!
   createOfficeHourGroup(data: OfficeHourGroupInput!): OfficeHourGroup!
   updateOfficeHourGroup(officeHourGroupId: ID!, data: OfficeHourGroupInput!): OfficeHourGroup!
   deleteOfficeHourGroup(officeHourGroupId: ID!): Boolean!
@@ -1197,6 +1225,20 @@ enum NotificationUrgency {
   URGENT
 }
 
+"""Google events which are used for OfficeHourEvents as well"""
+type OfficeHourEvent {
+  eventId: ID!
+  title: String
+  organizer: User
+  officeHourGroup: OfficeHourGroup
+  location: String!
+  participant: String
+  startTime: DateTime!
+  endTime: DateTime!
+  isOfficeHourBooked: Boolean
+  description: String
+}
+
 type OfficeHourGroup {
   id: ID!
   title: String!
@@ -1256,6 +1298,14 @@ input PartnerSignupInput {
   companySlug: String!
 }
 
+type Permission {
+  roles: [UserRole]
+  name: String
+  id: ID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
 type Project {
   title: String!
   isLookingForTeammates: Boolean
@@ -1264,19 +1314,71 @@ type Project {
   outline: String
   isArchived: Boolean!
   isApproved: Boolean!
+  isCheckedOut: Boolean!
+  checkoutRequestDate: DateTime
+  signoffRequestDate: DateTime
+  portfolioDescription: String
   originator: User
+  followers: [User!]
   sponsor: User
-  memberships: [ProjectMembership!]
+  memberships: [ProjectMembership!]!
   tags: [Tag!]!
   updates: [ProjectUpdate!]!
   semesters: [Semester!]
   activeMemberships: [ProjectMembership!]
-  invites: [ProjectInvite!]
-  grants: [String!]
+  invites: [ProjectInvite!]!
+  permissions: ProjectPermissions!
+  projectChanges: [ProjectChange!]!
+  isCurrentSemesterProject: Boolean
   isFutureProject: Boolean
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+input ProjectApprovalsFilter {
+  """Fulltext search string"""
+  search: String
+
+  """Sponsor assigned to the project"""
+  sponsor: String
+
+  """Show only official CODE projects"""
+  officialProject: Boolean
+
+  """Show only projects that have a sponsor"""
+  hasSponsor: Boolean
+
+  """Show projects that are part of x semester"""
+  semester: String
+}
+
+type ProjectChange {
+  id: ID!
+  createdAt: DateTime!
+  type: ProjectChangeType!
+  title: String
+  description: String
+  outline: String
+  isApproved: Boolean
+  isCheckedOut: Boolean
+  project: Project
+  sponsor: User
+  update: ProjectUpdate
+  memberships: [ProjectMembership]
+  semester: Semester
+}
+
+enum ProjectChangeType {
+  TITLE
+  DESCRIPTION
+  OUTLINE
+  SPONSOR
+  PROJECT_UPDATE
+  APPROVED
+  MEMBERS
+  CARRY_OVER
+  CHECKED_OUT
 }
 
 input ProjectFilter {
@@ -1331,6 +1433,9 @@ input ProjectInviteUserInput {
 
 type ProjectMembership {
   role: String
+  tools: [Tag]
+  responsibilities: String
+  keyLearnings: String
   startDate: DateTime!
   endTime: DateTime
   isOwner: Boolean
@@ -1339,6 +1444,22 @@ type ProjectMembership {
   id: ID!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+type ProjectOutlineTemplate {
+  """Template ID"""
+  id: String
+
+  """Name of the template"""
+  name: String
+
+  """Markdown template"""
+  template: String
+}
+
+type ProjectPermissions {
+  canEdit: Boolean!
+  canManage: Boolean!
 }
 
 enum ProjectRequirements {
@@ -1439,6 +1560,7 @@ type Query {
   """get all project updates"""
   projectUpdates(pagination: PaginationInput, filter: ProjectUpdateFilter): [ProjectUpdate!]
   projectUpdatesTags: [Tag!]
+  followedProjectUpdates: [ProjectUpdate!]
   studyPrograms: [StudyProgram!]!
 
   """Get a single assessment with the given assessmentId"""
@@ -1504,7 +1626,13 @@ type Query {
   project(projectId: ID!): Project!
   projects(pagination: PaginationInput, filter: ProjectFilter): [Project!]!
   myProjects: [Project!]
-  myProjectsAvailableForAssessments(semesterModuleId: ID!, assessmentStyle: AssessmentStyle!): [Project!]
+
+  """Querying all of the profs sponsored projects"""
+  mySponsoredProjects: [Project!]!
+  projectApprovals(pagination: PaginationInput, filter: ProjectApprovalsFilter): [Project!]
+  myProjectsAvailableForAssessments(semesterModuleId: ID!): [Project!]
+  projectOutlineTemplates: [ProjectOutlineTemplate!]
+  projectOutlineTemplate(templatePageId: String!): ProjectOutlineTemplate
   projectInvites(pagination: PaginationInput): [ProjectInvite!]!
   department(departmentId: ID!): Department!
   departments: [Department!]!
@@ -1566,7 +1694,7 @@ type Query {
   """
   Lists event groups of the current user - where current user is organizer or is attending
   """
-  myEventGroups(departmentAbbreviation: String, currentSemesterOnly: Boolean, filter: EventGroupFilter): [EventGroup!]!
+  myEventGroups(departmentAbbreviation: String, currentSemesterOnly: Boolean, type: EventGroupType, filter: EventGroupFilter): [EventGroup!]!
 
   """Get all event groups which have no related modules"""
   unassignedEventGroupsByModule(semesterModuleId: ID!, pagination: PaginationInput): [EventGroup!]!
@@ -1590,6 +1718,9 @@ type Query {
 
   """List all students"""
   students(pagination: PaginationInput, filter: StudentFilter): [User!]!
+
+  """List all professors"""
+  professors: [User!]!
 
   """Get the currently logged in user's details"""
   me: User!
@@ -1622,6 +1753,7 @@ type Query {
 
   """Get all published hand-ins / hand-ins visible to the current user"""
   publishedModuleHandins(pagination: PaginationInput, filter: PublishedModuleHandinFilter): [PublishedModuleHandin!]
+  availableOfficeHours(profId: ID!): [OfficeHourEvent!]!
 
   """
   querying all of the user google events at a specific week and checking if the events are office hour 
@@ -1770,6 +1902,7 @@ type SemesterModule {
   nextModules: [SemesterModule!]!
   slackLink: String
   grants: [String]
+  permissions: SemesterModulePermissions
   currentAssessment: Assessment
   status: String
   currentAssessmentStyle: AssessmentStyle
@@ -1824,6 +1957,12 @@ input SemesterModuleInput {
 
 input SemesterModuleMCInput {
   eventGroups: [String!]!
+}
+
+type SemesterModulePermissions {
+  canManage: Boolean
+  canManageFutureModule: Boolean
+  canEdit: Boolean
 }
 
 input SemesterModuleUpdateInput {
@@ -1969,7 +2108,11 @@ input UpdateProjectInput {
   isLookingForTeammates: Boolean!
   tags: [String!]
   semesters: [String!]!
-  teamMembers: [ProjectTeamMemberInput!]
+  teamMembers: [ProjectTeamMemberInput!]!
+  tools: [String!]
+  responsibilities: String
+  keyLearnings: String
+  portfolioDescription: String
 }
 
 input UpdateUserProfileInput {
@@ -1996,6 +2139,8 @@ type User {
   email: String!
   pushNotificationToken: String
   avatarUrl: String
+  currentSession: DateTime!
+  prevSession: DateTime!
   role: UserRole!
   slackId: String
   bio: String
@@ -2004,6 +2149,7 @@ type User {
   eventGroupParticipations: [EventGroupParticipations!]!
   projectMemberships: [ProjectMembership!]!
   skills: [UserSkill!]!
+  projectsFollowed: [Project!]!
   inactive: Boolean
   githubHandle: String
   linkedInHandle: String
