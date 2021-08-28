@@ -73,6 +73,7 @@ fn main() -> Result<()> {
         return tldr::run(app);
     }
 
-    let dashboard = Dashboard::new(app);
+    let dashboard = Dashboard::new(app)?;
+    dashboard.draw()?;
     Ok(())
 }
